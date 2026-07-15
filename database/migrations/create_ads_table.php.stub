@@ -1,0 +1,44 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create(config('adment.table', 'ads'), function (Blueprint $table): void {
+            $table->id();
+            $table->string('name');
+            $table->string('key', 120)->unique();
+            $table->string('location', 120)->nullable()->index();
+            $table->string('image')->nullable();
+            $table->string('tablet_image')->nullable();
+            $table->string('mobile_image')->nullable();
+            $table->string('url')->nullable();
+            $table->boolean('open_in_new_tab')->default(true);
+            $table->dateTime('expired_at')->nullable()->index();
+            $table->unsignedTinyInteger('order')->default(0);
+            $table->string('status', 60)->default('published')->index();
+            $table->unsignedBigInteger('clicked')->default(0);
+            $table->string('ads_type', 60)->default('custom_ad')->index();
+            $table->string('google_adsense_slot_id')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create(config('adment.settings_table', 'ads_settings'), function (Blueprint $table): void {
+            $table->string('key')->primary();
+            $table->json('value')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists(config('adment.settings_table', 'ads_settings'));
+        Schema::dropIfExists(config('adment.table', 'ads'));
+    }
+};
