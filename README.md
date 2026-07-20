@@ -1,4 +1,4 @@
-# Filament Ads
+# Adment
 
 A production-grade ad & Google AdSense manager for **Filament v5** on **Laravel 12/13** — ad placements ("locations"), responsive creatives, obfuscated click tracking, AdSense Auto Ads & ad units, `ads.txt` management, and an optional public JSON API.
 
@@ -23,33 +23,33 @@ Ported and re-architected from the battle-tested Botble Ads plugin, rebuilt idio
 ## Installation
 
 ```bash
-composer require usamamuneerchaudhary/filads
+composer require usamamuneerchaudhary/adment
 
-php artisan vendor:publish --tag=filads-migrations
+php artisan vendor:publish --tag=adment-migrations
 php artisan migrate
 
 # optional
-php artisan vendor:publish --tag=filads-config
-php artisan vendor:publish --tag=filads-views
+php artisan vendor:publish --tag=adment-config
+php artisan vendor:publish --tag=adment-views
 ```
 
 Register the plugin in your panel provider:
 
 ```php
-use Usamamuneerchaudhary\FilAds\FilAdsPlugin;
+use Usamamuneerchaudhary\Adment\AdmentPlugin;
 
 public function panel(Panel $panel): Panel
 {
     return $panel
         // ...
-        ->plugin(FilAdsPlugin::make());
-        // ->plugin(FilAdsPlugin::make()->settingsPage(false)) to hide settings
+        ->plugin(AdmentPlugin::make());
+        // ->plugin(AdmentPlugin::make()->settingsPage(false)) to hide settings
 }
 ```
 
 ## Registering locations
 
-In `config/filads.php`:
+In `config/adment.php`:
 
 ```php
 'locations' => [
@@ -62,7 +62,7 @@ In `config/filads.php`:
 Or at runtime (e.g. in a service provider or theme boot):
 
 ```php
-use Usamamuneerchaudhary\FilAds\Facades\Ads;
+use Usamamuneerchaudhary\Adment\Facades\Ads;
 
 Ads::registerLocation('footer', 'Footer')
     ->registerLocation('post-content', 'Below post content');
@@ -74,13 +74,13 @@ Ads::registerLocation('footer', 'Footer')
 
 ```blade
 {{-- One random published, non-expired ad from a location --}}
-<x-filads::display location="sidebar" />
+<x-adment::display location="sidebar" />
 
 {{-- All ads in a location, ordered by weight --}}
-<x-filads::display location="sidebar" :single="false" />
+<x-adment::display location="sidebar" :single="false" />
 
 {{-- A specific ad by key, with passthrough attributes --}}
-<x-filads::display ad-key="HOMEPAGEBNNR" class="my-4" />
+<x-adment::display ad-key="HOMEPAGEBNNR" class="my-4" />
 ```
 
 **Facade / service:**
@@ -101,11 +101,11 @@ Configure in **Ads settings** in the panel (mode: Disabled / Auto Ads / Ad units
 ```blade
 <head>
     ...
-    <x-filads::adsense-head />
+    <x-adment::adsense-head />
 </head>
 <body>
     ...
-    <x-filads::adsense-foot />
+    <x-adment::adsense-foot />
 </body>
 ```
 
@@ -129,7 +129,7 @@ Returns published, non-expired ads ordered by weight, with tracked `link` URLs �
 
 ## Extending
 
-- **Custom model:** point `filads.models.ad` at your subclass (add tenancy scopes, relations, etc.).
+- **Custom model:** point `adment.models.ad` at your subclass (add tenancy scopes, relations, etc.).
 - **Analytics:** listen to `AdClicked` (ad, referer, user agent) and `AdsLoading`.
 - **Rendering:** publish and override the views, or swap the whole `ManagesAds` binding.
 
@@ -173,4 +173,4 @@ Impression tracking & CTR dashboards · weighted A/B rotation · scheduling wind
 
 ## License
 
-MIT. Rename the `Usamamuneerchaudhary` namespace and `usamamuneerchaudhary/filads` package name before publishing.
+MIT. Rename the `Usamamuneerchaudhary` namespace and `usamamuneerchaudhary/adment` package name before publishing.

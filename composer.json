@@ -1,0 +1,65 @@
+{
+    "name": "usamamuneerchaudhary/adment",
+    "description": "Production-grade ad & Google AdSense manager for Filament v5, placements, responsive creatives, click tracking, and a public API.",
+    "keywords": ["laravel", "filament", "ads", "adsense", "banners", "filament-plugin"],
+    "homepage": "https://github.com/usamamuneerchaudhary/adment",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Usama Muneer",
+            "email": "hello@usamamuneer.me",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "filament/filament": "^5.0",
+        "illuminate/contracts": "^12.0|^13.0",
+        "spatie/laravel-package-tools": "^1.92"
+    },
+    "require-dev": {
+        "larastan/larastan": "^3.0",
+        "laravel/pint": "^1.18",
+        "orchestra/testbench": "^10.0|^11.0",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0",
+        "phpstan/phpstan-deprecation-rules": "^2.0",
+        "phpstan/phpstan-phpunit": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Usamamuneerchaudhary\\Adment\\": "src/",
+            "Usamamuneerchaudhary\\Adment\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Usamamuneerchaudhary\\Adment\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "analyse": "vendor/bin/phpstan analyse",
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage",
+        "format": "vendor/bin/pint"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Usamamuneerchaudhary\\Adment\\AdmentServiceProvider"
+            ],
+            "aliases": {
+                "Ads": "Usamamuneerchaudhary\\Adment\\Facades\\Ads"
+            }
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
