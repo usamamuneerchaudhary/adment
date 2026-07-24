@@ -6,7 +6,7 @@
 [![Code Intelligence Status](https://scrutinizer-ci.com/g/usamamuneerchaudhary/adment/badges/code-intelligence.svg?b=main)](https://scrutinizer-ci.com/code-intelligence)
 [![Total Downloads](https://img.shields.io/packagist/dt/usamamuneerchaudhary/adment?style=flat-square)](https://packagist.org/packages/usamamuneerchaudhary/adment)
 [![Licence](https://img.shields.io/packagist/l/usamamuneerchaudhary/adment?style=flat-square)](https://github.com/usamamuneerchaudhary/adment/blob/HEAD/LICENSE.md)
-![adment-1280 (4).png](public/images/screenshots/adment-1280%20%284%29.png)
+<img src="public/images/screenshots/adment-1280%20%284%29.png" alt="adment-thumbnail.jpg" class="filament-hidden" />
 A simple custom ad & Google AdSense manager for **Filament v5** on **Laravel 12/13** — placements, responsive (and GIF/video) creatives, weighted A/B rotation, scheduling windows, geo/device targeting, impression & CTR analytics, obfuscated click tracking, AdSense Auto Ads & ad units, `ads.txt` management, and an optional public JSON API.
 
 > **Requires:** PHP 8.3+, Laravel 12 or 13, Filament 5 (Livewire 4).
