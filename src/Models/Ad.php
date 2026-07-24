@@ -31,6 +31,15 @@ use Usamamuneerchaudhary\Adment\Enums\AdType;
  * @property int $clicked
  * @property AdType $ads_type
  * @property string|null $google_adsense_slot_id
+ * @property-read string|null $image_url
+ * @property-read string|null $tablet_image_url
+ * @property-read string|null $mobile_image_url
+ * @property-read string|null $click_url
+ *
+ * @method static Builder<static> query()
+ * @method static Builder<static> published()
+ * @method static Builder<static> displayable()
+ * @method static Builder<static> forLocation(string $location)
  */
 class Ad extends Model
 {
@@ -58,9 +67,9 @@ class Ad extends Model
     protected static function booted(): void
     {
         static::creating(function (self $ad): void {
-            $ad->key = $ad->key !== null && $ad->key !== ''
-                ? $ad->key
-                : static::generateUniqueKey();
+            if (blank($ad->getAttribute('key'))) {
+                $ad->key = static::generateUniqueKey();
+            }
         });
     }
 
@@ -88,6 +97,8 @@ class Ad extends Model
 
     /**
      * Limit the query to published ads.
+     *
+     * @param  Builder<static>  $query
      */
     public function scopePublished(Builder $query): void
     {
@@ -96,6 +107,8 @@ class Ad extends Model
 
     /**
      * Limit the query to published ads that are AdSense units or not yet expired.
+     *
+     * @param  Builder<static>  $query
      */
     public function scopeDisplayable(Builder $query): void
     {
@@ -107,6 +120,8 @@ class Ad extends Model
 
     /**
      * Limit the query to ads assigned to a placement location.
+     *
+     * @param  Builder<static>  $query
      */
     public function scopeForLocation(Builder $query, string $location): void
     {
@@ -165,30 +180,50 @@ class Ad extends Model
     |--------------------------------------------------------------------------
     */
 
-    /** Resolve the desktop/default creative URL. */
+    /**
+     * Resolve the desktop/default creative URL.
+     *
+     * @return Attribute<covariant string|null, never>
+     */
     protected function imageUrl(): Attribute
     {
-        return Attribute::get(fn (): ?string => $this->resolveMediaUrl($this->image));
-    }
-
-    /** Resolve the tablet creative URL, falling back to the default image. */
-    protected function tabletImageUrl(): Attribute
-    {
-        return Attribute::get(fn (): ?string => $this->resolveMediaUrl($this->tablet_image ?: $this->image));
-    }
-
-    /** Resolve the mobile creative URL with tablet then desktop fallback. */
-    protected function mobileImageUrl(): Attribute
-    {
         return Attribute::get(
-            fn (): ?string => $this->resolveMediaUrl(($this->mobile_image ?: $this->tablet_image) ?: $this->image),
+            fn (mixed $value, array $attributes): ?string => $this->resolveMediaUrl($this->image),
         );
     }
 
-    /** Build the obfuscated click-tracking URL for this ad. */
+    /**
+     * Resolve the tablet creative URL, falling back to the default image.
+     *
+     * @return Attribute<covariant string|null, never>
+     */
+    protected function tabletImageUrl(): Attribute
+    {
+        return Attribute::get(
+            fn (mixed $value, array $attributes): ?string => $this->resolveMediaUrl($this->tablet_image ?: $this->image),
+        );
+    }
+
+    /**
+     * Resolve the mobile creative URL with tablet then desktop fallback.
+     *
+     * @return Attribute<covariant string|null, never>
+     */
+    protected function mobileImageUrl(): Attribute
+    {
+        return Attribute::get(
+            fn (mixed $value, array $attributes): ?string => $this->resolveMediaUrl(($this->mobile_image ?: $this->tablet_image) ?: $this->image),
+        );
+    }
+
+    /**
+     * Build the obfuscated click-tracking URL for this ad.
+     *
+     * @return Attribute<covariant string|null, never>
+     */
     protected function clickUrl(): Attribute
     {
-        return Attribute::get(function (): ?string {
+        return Attribute::get(function (mixed $value, array $attributes): ?string {
             if (! $this->url) {
                 return null;
             }

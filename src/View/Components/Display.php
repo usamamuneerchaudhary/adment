@@ -42,7 +42,7 @@ class Display extends Component
                 ? ($this->ads->displayAds($this->adKey, $extra) ?? '')
                 : ($this->location !== null ? $this->ads->display($this->location, $extra, $this->single) : '');
 
-            return view('adment::components.display', [
+            return $this->view('adment::components.display', [
                 'html' => new HtmlString($html),
             ]);
         };

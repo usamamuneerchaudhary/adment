@@ -27,7 +27,9 @@ class AdsManager implements ManagesAds
         protected AdsSettings $settings,
     ) {
         $this->data = new Collection;
-        $this->locations = (array) config('adment.locations', ['not_set' => 'Not set']);
+        /** @var array<string, string> $locations */
+        $locations = (array) config('adment.locations', ['not_set' => 'Not set']);
+        $this->locations = $locations;
     }
 
     /** Register a named placement location for ads. */
@@ -40,6 +42,8 @@ class AdsManager implements ManagesAds
 
     /**
      * Return all registered location keys mapped to display names.
+     *
+     * @return array<string, string>
      */
     public function getLocations(): array
     {
@@ -66,13 +70,20 @@ class AdsManager implements ManagesAds
 
     /**
      * Keep only ads that are currently displayable.
+     *
+     * @param  Collection<int, Ad>  $ads
+     * @return Collection<int, Ad>
      */
     public function filterDisplayable(Collection $ads): Collection
     {
         return $ads->filter(fn (Ad $ad): bool => $ad->isDisplayable());
     }
 
-    /** Render displayable ads for a location (one random ad when $single is true). */
+    /**
+     * Render displayable ads for a location (one random ad when $single is true).
+     *
+     * @param  array<string, mixed>  $attributes
+     */
     public function display(string $location, array $attributes = [], bool $single = true): string
     {
         $this->load();
@@ -93,7 +104,11 @@ class AdsManager implements ManagesAds
         return $this->render($ads, $attributes);
     }
 
-    /** Render a single ad by its public key. */
+    /**
+     * Render a single ad by its public key.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
     public function displayAds(?string $key, array $attributes = []): ?string
     {
         if ($key === null || $key === '') {
@@ -133,7 +148,11 @@ class AdsManager implements ManagesAds
         return $ad instanceof Ad && $ad->image ? $ad : null;
     }
 
-    /** Return the loaded ads collection, optionally filtered to displayable ones. */
+    /**
+     * Return the loaded ads collection, optionally filtered to displayable ones.
+     *
+     * @return Collection<int, Ad>
+     */
     public function getData(bool $load = false, bool $displayableOnly = false): Collection
     {
         if ($load) {
@@ -145,6 +164,9 @@ class AdsManager implements ManagesAds
 
     /**
      * Render the given ads through the shared Blade partial.
+     *
+     * @param  Collection<int, Ad>  $ads
+     * @param  array<string, mixed>  $attributes
      */
     protected function render(Collection $ads, array $attributes = []): string
     {

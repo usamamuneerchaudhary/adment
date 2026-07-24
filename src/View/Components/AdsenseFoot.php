@@ -19,7 +19,7 @@ class AdsenseFoot extends Component
     /** Render unit-mode AdSense scripts before the closing body tag. */
     public function render(): View
     {
-        return view('adment::components.adsense-foot', [
+        return $this->view('adment::components.adsense-foot', [
             'mode' => $this->settings->mode(),
             'clientId' => $this->settings->unitClientId(),
         ]);

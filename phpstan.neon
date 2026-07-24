@@ -11,3 +11,10 @@ parameters:
     tmpDir: build/phpstan
     checkOctaneCompatibility: true
     checkModelProperties: true
+
+    # Package config files legitimately call env(); Larastan only treats the
+    # consuming app's config/ as safe when analysing a package in isolation.
+    ignoreErrors:
+        -
+            identifier: larastan.noEnvCallsOutsideOfConfig
+            path: config/*

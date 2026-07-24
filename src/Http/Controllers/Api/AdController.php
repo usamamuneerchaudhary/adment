@@ -21,9 +21,12 @@ class AdController
         /** @var class-string<Ad> $model */
         $model = config('adment.models.ad', Ad::class);
 
+        /** @var list<string>|null $keys */
+        $keys = $validated['keys'] ?? null;
+
         $ads = $model::query()
             ->displayable()
-            ->when($validated['keys'] ?? null, fn ($query, array $keys) => $query->whereIn('key', $keys))
+            ->when($keys, fn ($query, array $keys) => $query->whereIn('key', $keys))
             ->orderBy('order')
             ->get()
             ->map(fn (Ad $ad): array => [

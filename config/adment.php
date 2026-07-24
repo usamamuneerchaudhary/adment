@@ -37,7 +37,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'media' => [
-        'disk' => env('FILAMENT_ADS_DISK', 'public'),
+        'disk' => env('ADMENT_DISK', 'public'),
         'directory' => 'ads',
     ],
 

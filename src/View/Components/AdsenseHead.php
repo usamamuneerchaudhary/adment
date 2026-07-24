@@ -19,7 +19,7 @@ class AdsenseHead extends Component
     /** Render Auto Ads or unit-mode scripts for the document head. */
     public function render(): View
     {
-        return view('adment::components.adsense-head', [
+        return $this->view('adment::components.adsense-head', [
             'mode' => $this->settings->mode(),
             'autoSnippet' => $this->settings->autoAdsSnippet(),
             'clientId' => $this->settings->unitClientId(),
