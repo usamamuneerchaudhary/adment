@@ -115,24 +115,24 @@ class AdResource extends Resource
                         DateTimePicker::make('expired_at')
                             ->label(__('Expires at'))
                             ->default(now()->addMonth())
-                            ->required(fn (Get $get): bool => $get('ads_type') !== AdType::GoogleAdsense->value)
-                            ->visible(fn (Get $get): bool => $get('ads_type') !== AdType::GoogleAdsense->value)
+                            ->required(fn (Get $get): bool => ! self::isAdType($get('ads_type'), AdType::GoogleAdsense))
+                            ->visible(fn (Get $get): bool => ! self::isAdType($get('ads_type'), AdType::GoogleAdsense))
                             ->native(false),
                     ]),
                 ]),
 
             Section::make(__('Google AdSense'))
-                ->visible(fn (Get $get): bool => $get('ads_type') === AdType::GoogleAdsense->value)
+                ->visible(fn (Get $get): bool => self::isAdType($get('ads_type'), AdType::GoogleAdsense))
                 ->schema([
                     TextInput::make('google_adsense_slot_id')
                         ->label(__('Slot ID'))
                         ->helperText(__('The data-ad-slot value from your AdSense ad unit.'))
-                        ->required(fn (Get $get): bool => $get('ads_type') === AdType::GoogleAdsense->value)
+                        ->required(fn (Get $get): bool => self::isAdType($get('ads_type'), AdType::GoogleAdsense))
                         ->maxLength(255),
                 ]),
 
             Section::make(__('Creative'))
-                ->visible(fn (Get $get): bool => $get('ads_type') !== AdType::GoogleAdsense->value)
+                ->visible(fn (Get $get): bool => ! self::isAdType($get('ads_type'), AdType::GoogleAdsense))
                 ->columns(2)
                 ->schema([
                     TextInput::make('url')
@@ -248,5 +248,11 @@ class AdResource extends Resource
             'create' => Pages\CreateAd::route('/create'),
             'edit' => Pages\EditAd::route('/{record}/edit'),
         ];
+    }
+
+    /** Determine whether a form ads_type value matches the given ad type. */
+    protected static function isAdType(mixed $value, AdType $type): bool
+    {
+        return $value === $type || $value === $type->value;
     }
 }

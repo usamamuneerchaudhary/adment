@@ -83,14 +83,14 @@ class ManageAdsSettings extends Page implements HasForms
                             ->label(__('Auto Ads snippet'))
                             ->helperText(__('Paste the exact snippet from your AdSense account.'))
                             ->rows(4)
-                            ->visible(fn (Get $get): bool => $get('mode') === AdsenseMode::Auto->value)
+                            ->visible(fn (Get $get): bool => self::isAdsenseMode($get('mode'), AdsenseMode::Auto))
                             ->requiredIf('mode', AdsenseMode::Auto->value)
                             ->rules([new ValidAdsenseAutoSnippet]),
 
                         TextInput::make('unit_client_id')
                             ->label(__('Publisher client ID'))
                             ->placeholder('ca-pub-0000000000000000')
-                            ->visible(fn (Get $get): bool => $get('mode') === AdsenseMode::Unit->value)
+                            ->visible(fn (Get $get): bool => self::isAdsenseMode($get('mode'), AdsenseMode::Unit))
                             ->requiredIf('mode', AdsenseMode::Unit->value)
                             ->regex('/^ca-pub-\d{16}$/'),
                     ]),
@@ -113,7 +113,10 @@ class ManageAdsSettings extends Page implements HasForms
     {
         $state = $this->form->getState();
 
-        $mode = AdsenseMode::tryFrom((string) ($state['mode'] ?? '')) ?? AdsenseMode::None;
+        $mode = $state['mode'] ?? AdsenseMode::None;
+        if (! $mode instanceof AdsenseMode) {
+            $mode = AdsenseMode::tryFrom((string) $mode) ?? AdsenseMode::None;
+        }
 
         $settings->updateAdsense(
             mode: $mode,
@@ -149,5 +152,11 @@ class ManageAdsSettings extends Page implements HasForms
         }
 
         File::put($path, $content);
+    }
+
+    /** Determine whether a form mode value matches the given AdSense mode. */
+    protected static function isAdsenseMode(mixed $value, AdsenseMode $mode): bool
+    {
+        return $value === $mode || $value === $mode->value;
     }
 }

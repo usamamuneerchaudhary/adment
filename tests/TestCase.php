@@ -17,7 +17,9 @@ use Filament\Tables\TablesServiceProvider;
 use Filament\Widgets\WidgetsServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Livewire\LivewireServiceProvider;
+use Livewire\Mechanisms\DataStore;
 use Orchestra\Testbench\TestCase as Orchestra;
+use RyanChandler\BladeCaptureDirective\BladeCaptureDirectiveServiceProvider;
 use Usamamuneerchaudhary\Adment\AdmentServiceProvider;
 use Usamamuneerchaudhary\Adment\Tests\Fixtures\AdminPanelProvider;
 
@@ -30,23 +32,26 @@ abstract class TestCase extends Orchestra
         Factory::guessFactoryNamesUsing(
             fn (string $modelName) => 'Usamamuneerchaudhary\\Adment\\Database\\Factories\\'.class_basename($modelName).'Factory',
         );
+        
+        $this->app->instance(DataStore::class, $this->app->make(DataStore::class));
     }
 
     protected function getPackageProviders($app): array
     {
         return [
-            ActionsServiceProvider::class,
-            BladeHeroiconsServiceProvider::class,
+            LivewireServiceProvider::class,
+            BladeCaptureDirectiveServiceProvider::class,
             BladeIconsServiceProvider::class,
-            FilamentServiceProvider::class,
+            BladeHeroiconsServiceProvider::class,
+            SupportServiceProvider::class,
+            SchemasServiceProvider::class,
+            ActionsServiceProvider::class,
             FormsServiceProvider::class,
             InfolistsServiceProvider::class,
-            LivewireServiceProvider::class,
-            NotificationsServiceProvider::class,
-            SchemasServiceProvider::class,
-            SupportServiceProvider::class,
             TablesServiceProvider::class,
+            NotificationsServiceProvider::class,
             WidgetsServiceProvider::class,
+            FilamentServiceProvider::class,
             AdmentServiceProvider::class,
             AdminPanelProvider::class,
         ];
@@ -54,11 +59,14 @@ abstract class TestCase extends Orchestra
 
     protected function defineEnvironment($app): void
     {
+        $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
+        $app['config']->set('session.driver', 'array');
         $app['config']->set('database.default', 'testing');
         $app['config']->set('database.connections.testing', [
             'driver' => 'sqlite',
             'database' => ':memory:',
             'prefix' => '',
+            'foreign_key_constraints' => true,
         ]);
 
         $app['config']->set('auth.providers.users.model', Fixtures\User::class);
