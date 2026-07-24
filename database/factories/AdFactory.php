@@ -17,6 +17,7 @@ class AdFactory extends Factory
 {
     protected $model = Ad::class;
 
+    /** Define the default state for a custom published ad. */
     public function definition(): array
     {
         return [
@@ -36,21 +37,25 @@ class AdFactory extends Factory
         ];
     }
 
+    /** Resolve the configured ad model class for this factory. */
     public function modelName(): string
     {
         return config('adment.models.ad', Ad::class);
     }
 
+    /** Mark the ad as a draft. */
     public function draft(): static
     {
         return $this->state(['status' => AdStatus::Draft]);
     }
 
+    /** Mark the ad as already expired. */
     public function expired(): static
     {
         return $this->state(['expired_at' => now()->subDay()]);
     }
 
+    /** Convert the ad into a Google AdSense unit. */
     public function adsense(?string $slotId = null): static
     {
         return $this->state([
@@ -62,6 +67,7 @@ class AdFactory extends Factory
         ]);
     }
 
+    /** Assign the ad to a specific placement location. */
     public function atLocation(string $location): static
     {
         return $this->state(['location' => $location]);

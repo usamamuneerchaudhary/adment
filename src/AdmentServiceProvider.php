@@ -14,6 +14,7 @@ use Usamamuneerchaudhary\Adment\Support\AdsManager;
 
 class AdmentServiceProvider extends PackageServiceProvider
 {
+    /** Configure the package name, config, views, and migration. */
     public function configurePackage(Package $package): void
     {
         $package
@@ -23,6 +24,7 @@ class AdmentServiceProvider extends PackageServiceProvider
             ->hasMigration('create_ads_table');
     }
 
+    /** Bind scoped ads settings and manager services into the container. */
     public function packageRegistered(): void
     {
         $this->app->scoped(AdsSettings::class, function (Application $app): AdsSettings {
@@ -42,6 +44,7 @@ class AdmentServiceProvider extends PackageServiceProvider
         $this->app->alias(ManagesAds::class, 'adment');
     }
 
+    /** Register Blade components and load optional web/API routes. */
     public function packageBooted(): void
     {
         Blade::componentNamespace('Usamamuneerchaudhary\\Adment\\View\\Components', 'adment');
