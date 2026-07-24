@@ -18,14 +18,19 @@ return new class extends Migration
             $table->string('image')->nullable();
             $table->string('tablet_image')->nullable();
             $table->string('mobile_image')->nullable();
+            $table->string('media_type', 30)->default('image');
             $table->string('url')->nullable();
             $table->boolean('open_in_new_tab')->default(true);
+            $table->dateTime('starts_at')->nullable()->index();
             $table->dateTime('expired_at')->nullable()->index();
             $table->unsignedTinyInteger('order')->default(0);
             $table->string('status', 60)->default('published')->index();
             $table->unsignedBigInteger('clicked')->default(0);
+            $table->unsignedBigInteger('impressions')->default(0);
             $table->string('ads_type', 60)->default('custom_ad')->index();
             $table->string('google_adsense_slot_id')->nullable();
+            $table->json('target_countries')->nullable();
+            $table->json('target_devices')->nullable();
             $table->timestamps();
         });
 
@@ -34,10 +39,22 @@ return new class extends Migration
             $table->json('value')->nullable();
             $table->timestamps();
         });
+
+        Schema::create(config('adment.daily_stats_table', 'ad_daily_stats'), function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('ad_id')->constrained(config('adment.table', 'ads'))->cascadeOnDelete();
+            $table->date('date')->index();
+            $table->unsignedInteger('impressions')->default(0);
+            $table->unsignedInteger('clicks')->default(0);
+            $table->timestamps();
+
+            $table->unique(['ad_id', 'date']);
+        });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists(config('adment.daily_stats_table', 'ad_daily_stats'));
         Schema::dropIfExists(config('adment.settings_table', 'ads_settings'));
         Schema::dropIfExists(config('adment.table', 'ads'));
     }
