@@ -57,3 +57,25 @@ it('injects nothing when mode is none', function (): void {
     expect(trim($head))->toBe('')
         ->and(trim($foot))->toBe('');
 });
+
+it('renders gif creatives as an img tag', function (): void {
+    Ad::factory()->gif()->atLocation('sidebar')->create(['image' => 'ads/banner.gif']);
+
+    $html = Blade::render('<x-adment::display location="sidebar" />');
+
+    expect($html)
+        ->toContain('<img')
+        ->toContain('ads/banner.gif')
+        ->not->toContain('<picture>');
+});
+
+it('renders video creatives as a video tag', function (): void {
+    Ad::factory()->video()->atLocation('sidebar')->create(['image' => 'ads/banner.mp4']);
+
+    $html = Blade::render('<x-adment::display location="sidebar" />');
+
+    expect($html)
+        ->toContain('<video')
+        ->toContain('ads/banner.mp4')
+        ->not->toContain('<picture>');
+});

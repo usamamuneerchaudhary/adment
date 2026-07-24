@@ -152,3 +152,42 @@ it('never leaks the raw destination URL into markup', function (): void {
         ->not->toContain('secret-destination.test')
         ->toContain('/ac-');
 });
+
+it('excludes scheduled ads from display', function (): void {
+    Ad::factory()->atLocation('sidebar')->scheduled()->create();
+
+    expect($this->manager->display('sidebar'))->toBe('');
+});
+
+it('excludes geo-targeted ads when the country header is missing', function (): void {
+    Ad::factory()->atLocation('sidebar')->create([
+        'target_countries' => ['US'],
+        'image' => 'ads/geo.jpg',
+    ]);
+
+    expect($this->manager->display('sidebar'))->toBe('');
+});
+
+it('includes geo-targeted ads when the country header matches', function (): void {
+    Ad::factory()->atLocation('sidebar')->create([
+        'target_countries' => ['US'],
+        'image' => 'ads/geo.jpg',
+    ]);
+
+    request()->headers->set('CF-IPCountry', 'US');
+
+    $html = $this->manager->display('sidebar');
+
+    expect($html)->toContain('ads/geo.jpg');
+});
+
+it('includes impression beacon attributes for custom ads', function (): void {
+    $ad = Ad::factory()->atLocation('sidebar')->create();
+
+    $html = $this->manager->display('sidebar');
+
+    expect($html)
+        ->toContain('data-adment-impression=')
+        ->toContain('data-adment-key="'.$ad->key.'"')
+        ->toContain('__admentImpressionBeacon');
+});

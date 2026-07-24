@@ -116,3 +116,36 @@ it('casts status and type to enums', function (): void {
 
     expect($ad->status)->toBeInstanceOf(AdStatus::class);
 });
+
+it('excludes future-scheduled custom ads from displayable', function (): void {
+    $ad = Ad::factory()->scheduled()->create();
+
+    expect($ad->isScheduled())->toBeTrue()
+        ->and($ad->isDisplayable())->toBeFalse()
+        ->and(Ad::query()->displayable()->whereKey($ad)->exists())->toBeFalse();
+});
+
+it('builds the impression URL through the tracking route', function (): void {
+    $ad = Ad::factory()->create();
+
+    expect($ad->impression_url)
+        ->toContain('ai-'.$ad->randomHash())
+        ->toContain($ad->key);
+});
+
+it('calculates CTR from impressions and clicks', function (): void {
+    $ad = Ad::factory()->create();
+    $ad->forceFill(['impressions' => 100, 'clicked' => 5])->save();
+
+    expect($ad->ctr())->toBe(5.0);
+});
+
+it('reports hasCreative for custom ads with media and adsense units with a slot', function (): void {
+    $custom = Ad::factory()->create();
+    $empty = Ad::factory()->create(['image' => null]);
+    $adsense = Ad::factory()->adsense('123')->create();
+
+    expect($custom->hasCreative())->toBeTrue()
+        ->and($empty->hasCreative())->toBeFalse()
+        ->and($adsense->hasCreative())->toBeTrue();
+});
