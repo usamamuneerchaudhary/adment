@@ -1,8 +1,6 @@
-# Adment
+# Adment - Filament Ad Manager
 
-A production-grade ad & Google AdSense manager for **Filament v5** on **Laravel 12/13** — ad placements ("locations"), responsive creatives, obfuscated click tracking, AdSense Auto Ads & ad units, `ads.txt` management, and an optional public JSON API.
-
-Ported and re-architected from the battle-tested Botble Ads plugin, rebuilt idiomatically for the Filament ecosystem.
+A simple custom ad & Google AdSense manager for **Filament v5** on **Laravel 12/13**, ad placements ("locations"), responsive creatives, obfuscated click tracking, AdSense Auto Ads & ad units, `ads.txt` management, and an optional public JSON API.
 
 > **Requires:** PHP 8.3+, Laravel 12 or 13, Filament 5 (Livewire 4).
 
@@ -114,7 +112,7 @@ Configure in **Ads settings** in the panel (mode: Disabled / Auto Ads / Ad units
 
 ## Click tracking
 
-Custom ads with a destination URL render links through `/ac-{sha1(key.id)}/{key}`. The handler verifies the hash (`hash_equals`), refuses non-HTTP(S) destinations, increments `clicked` without model events or timestamp bumps, dispatches `AdClicked`, and redirects. A legacy `/ads-click/{key}` route is included for parity with Botble.
+Custom ads with a destination URL render links through `/ac-{sha1(key.id)}/{key}`. The handler verifies the hash (`hash_equals`), refuses non-HTTP(S) destinations, increments `clicked` without model events or timestamp bumps, dispatches `AdClicked`, and redirects. A legacy `/ads-click/{key}` route is included.
 
 ## Public API (optional)
 
@@ -125,7 +123,7 @@ GET /api/v1/ads
 GET /api/v1/ads?keys[]=HOMEPAGEBNNR&keys[]=SIDEBAR00001
 ```
 
-Returns published, non-expired ads ordered by weight, with tracked `link` URLs — the raw destination is never exposed.
+Returns published, non-expired ads ordered by weight, with tracked `link` URLs, the raw destination is never exposed.
 
 ## Extending
 
@@ -167,10 +165,5 @@ composer format      # Pint
 
 The suite covers the model (key generation, hash, image fallbacks, scopes, click counting), the manager (filtering, random single, ordering, attribute passthrough, AdSense rendering, URL non-leakage), click routes (hash tampering, unsafe URLs, legacy route), Blade components, the public API, the AdSense snippet validator (11 attack/malformation cases), and the Filament resource + settings page via Livewire.
 
-## Roadmap (Pro tier)
-
-Impression tracking & CTR dashboards · weighted A/B rotation · scheduling windows · geo/device targeting · Google Ad Manager support. The free core stays MIT forever.
-
 ## License
-
-MIT. Rename the `Usamamuneerchaudhary` namespace and `usamamuneerchaudhary/adment` package name before publishing.
+[MIT](LICENSE.md)
