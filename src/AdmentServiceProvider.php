@@ -11,6 +11,8 @@ use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Usamamuneerchaudhary\Adment\Contracts\ManagesAds;
 use Usamamuneerchaudhary\Adment\Settings\AdsSettings;
 use Usamamuneerchaudhary\Adment\Support\AdsManager;
+use Usamamuneerchaudhary\Adment\Support\AdTargeting;
+use Usamamuneerchaudhary\Adment\Support\WeightedAdSelector;
 
 class AdmentServiceProvider extends PackageServiceProvider
 {
@@ -21,7 +23,8 @@ class AdmentServiceProvider extends PackageServiceProvider
             ->name('adment')
             ->hasConfigFile()
             ->hasViews('adment')
-            ->hasMigration('create_ads_table');
+            ->hasMigration('create_ads_table')
+            ->hasMigration('add_adment_analytics_and_targeting_columns');
     }
 
     /** Bind scoped ads settings and manager services into the container. */
@@ -38,6 +41,8 @@ class AdmentServiceProvider extends PackageServiceProvider
             return new AdsManager(
                 $app['view'],
                 $app->make(AdsSettings::class),
+                $app->make(AdTargeting::class),
+                $app->make(WeightedAdSelector::class),
             );
         });
 

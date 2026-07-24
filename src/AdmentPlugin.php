@@ -6,12 +6,15 @@ namespace Usamamuneerchaudhary\Adment;
 
 use Filament\Contracts\Plugin;
 use Filament\Panel;
+use Usamamuneerchaudhary\Adment\Filament\Pages\AdAnalyticsDashboard;
 use Usamamuneerchaudhary\Adment\Filament\Pages\ManageAdsSettings;
 use Usamamuneerchaudhary\Adment\Filament\Resources\AdResource;
 
 class AdmentPlugin implements Plugin
 {
     protected bool $hasSettingsPage = true;
+
+    protected bool $hasAnalyticsPage = true;
 
     /** Resolve a fresh plugin instance from the container. */
     public static function make(): static
@@ -33,17 +36,33 @@ class AdmentPlugin implements Plugin
         return $this;
     }
 
-    /** Register the ad resource and optional settings page on the panel. */
+    /** Toggle whether the analytics dashboard is registered on the panel. */
+    public function analyticsPage(bool $condition = true): static
+    {
+        $this->hasAnalyticsPage = $condition;
+
+        return $this;
+    }
+
+    /** Register the ad resource and optional settings/analytics pages on the panel. */
     public function register(Panel $panel): void
     {
         $panel->resources([
             AdResource::class,
         ]);
 
+        $pages = [];
+
         if ($this->hasSettingsPage) {
-            $panel->pages([
-                ManageAdsSettings::class,
-            ]);
+            $pages[] = ManageAdsSettings::class;
+        }
+
+        if ($this->hasAnalyticsPage) {
+            $pages[] = AdAnalyticsDashboard::class;
+        }
+
+        if ($pages !== []) {
+            $panel->pages($pages);
         }
     }
 
