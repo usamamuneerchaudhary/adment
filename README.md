@@ -239,5 +239,10 @@ composer format      # Pint
 
 The suite covers the model (key generation, hash, image fallbacks, scopes, schedule/CTR, click & impression counting), the manager (filtering, weighted selection, targeting, attribute passthrough, AdSense rendering, URL non-leakage), click & impression routes (hash tampering, unsafe URLs, legacy route, daily stats), Blade components (image / GIF / video), targeting & weighted selector units, the public API, the AdSense snippet validator, and the Filament resource + settings page via Livewire.
 
+## Screenshots 
+![Screenshot 2026-07-24 at 21.33.29.png](public/images/screenshots/Screenshot%202026-07-24%20at%2021.33.29.png)
+![Screenshot 2026-07-24 at 21.33.37.png](public/images/screenshots/Screenshot%202026-07-24%20at%2021.33.37.png)
+![Screenshot 2026-07-24 at 21.33.50.png](public/images/screenshots/Screenshot%202026-07-24%20at%2021.33.50.png)
+![Screenshot 2026-07-25 at 02.15.51.png](public/images/screenshots/Screenshot%202026-07-25%20at%2002.15.51.png)
 ## License
 [MIT](LICENSE.md)
