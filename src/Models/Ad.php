@@ -8,12 +8,15 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Usamamuneerchaudhary\Adment\Database\Factories\AdFactory;
+use Usamamuneerchaudhary\Adment\Enums\AdMediaType;
 use Usamamuneerchaudhary\Adment\Enums\AdStatus;
 use Usamamuneerchaudhary\Adment\Enums\AdType;
+use Usamamuneerchaudhary\Adment\Support\AdAnalyticsRecorder;
 
 /**
  * @property int $id
@@ -23,18 +26,24 @@ use Usamamuneerchaudhary\Adment\Enums\AdType;
  * @property string|null $image
  * @property string|null $tablet_image
  * @property string|null $mobile_image
+ * @property AdMediaType $media_type
  * @property string|null $url
  * @property bool $open_in_new_tab
+ * @property Carbon|null $starts_at
  * @property Carbon|null $expired_at
  * @property int $order
  * @property AdStatus $status
  * @property int $clicked
+ * @property int $impressions
  * @property AdType $ads_type
  * @property string|null $google_adsense_slot_id
+ * @property array<int, string>|null $target_countries
+ * @property array<int, string>|null $target_devices
  * @property-read string|null $image_url
  * @property-read string|null $tablet_image_url
  * @property-read string|null $mobile_image_url
  * @property-read string|null $click_url
+ * @property-read string|null $impression_url
  *
  * @method static Builder<static> query()
  * @method static Builder<static> published()
@@ -46,15 +55,20 @@ class Ad extends Model
     /** @use HasFactory<AdFactory> */
     use HasFactory;
 
-    protected $guarded = ['id', 'clicked'];
+    protected $guarded = ['id', 'clicked', 'impressions'];
 
     protected $casts = [
         'open_in_new_tab' => 'boolean',
+        'starts_at' => 'datetime',
         'expired_at' => 'datetime',
         'order' => 'integer',
         'clicked' => 'integer',
+        'impressions' => 'integer',
         'status' => AdStatus::class,
         'ads_type' => AdType::class,
+        'media_type' => AdMediaType::class,
+        'target_countries' => 'array',
+        'target_devices' => 'array',
     ];
 
     /** Resolve the ads table name from config. */
@@ -91,6 +105,20 @@ class Ad extends Model
 
     /*
     |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * @return HasMany<AdDailyStat, $this>
+     */
+    public function dailyStats(): HasMany
+    {
+        return $this->hasMany(AdDailyStat::class);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | Scopes
     |--------------------------------------------------------------------------
     */
@@ -106,7 +134,7 @@ class Ad extends Model
     }
 
     /**
-     * Limit the query to published ads that are AdSense units or not yet expired.
+     * Limit the query to published ads that are AdSense units or within their schedule window.
      *
      * @param  Builder<static>  $query
      */
@@ -114,7 +142,13 @@ class Ad extends Model
     {
         $query->published()->where(function (Builder $query): void {
             $query->where('ads_type', AdType::GoogleAdsense)
-                ->orWhere('expired_at', '>=', now());
+                ->orWhere(function (Builder $query): void {
+                    $query->where('expired_at', '>=', now())
+                        ->where(function (Builder $query): void {
+                            $query->whereNull('starts_at')
+                                ->orWhere('starts_at', '<=', now());
+                        });
+                });
         });
     }
 
@@ -150,28 +184,60 @@ class Ad extends Model
         return $this->expired_at === null || $this->expired_at->lt(now());
     }
 
+    /** Determine whether this custom ad has not yet reached its start date. */
+    public function isScheduled(): bool
+    {
+        if ($this->isAdsense()) {
+            return false;
+        }
+
+        return $this->starts_at !== null && $this->starts_at->gt(now());
+    }
+
     /** Determine whether this ad should be shown publicly. */
     public function isDisplayable(): bool
     {
-        return $this->status === AdStatus::Published && ! $this->isExpired();
+        return $this->status === AdStatus::Published
+            && ! $this->isExpired()
+            && ! $this->isScheduled();
     }
 
-    /** Build the obfuscation hash used by the click-tracking route. */
+    /** Determine whether this ad has a renderable creative. */
+    public function hasCreative(): bool
+    {
+        if ($this->isAdsense()) {
+            return filled($this->google_adsense_slot_id);
+        }
+
+        return filled($this->image);
+    }
+
+    /** Calculate lifetime click-through rate as a percentage. */
+    public function ctr(): float
+    {
+        if ($this->impressions === 0) {
+            return 0.0;
+        }
+
+        return round(($this->clicked / $this->impressions) * 100, 2);
+    }
+
+    /** Build the obfuscation hash used by the click and impression routes. */
     public function randomHash(): string
     {
         return hash('sha1', $this->key.$this->id);
     }
 
-    /** Increment the click counter without firing model events or updating timestamps. */
+    /** Increment the click counter and daily stats without firing model events or updating timestamps. */
     public function recordClick(): void
     {
-        static::withoutEvents(
-            fn () => static::withoutTimestamps(
-                fn () => $this->increment('clicked'),
-            ),
-        );
+        app(AdAnalyticsRecorder::class)->recordClick($this);
+    }
 
-        $this->refresh();
+    /** Increment the impression counter and daily stats without firing model events or updating timestamps. */
+    public function recordImpression(): void
+    {
+        app(AdAnalyticsRecorder::class)->recordImpression($this);
     }
 
     /*
@@ -229,6 +295,25 @@ class Ad extends Model
             }
 
             return route('adment.click', [
+                'randomHash' => $this->randomHash(),
+                'adsKey' => $this->key,
+            ]);
+        });
+    }
+
+    /**
+     * Build the obfuscated impression-tracking URL for this ad.
+     *
+     * @return Attribute<covariant string|null, never>
+     */
+    protected function impressionUrl(): Attribute
+    {
+        return Attribute::get(function (mixed $value, array $attributes): ?string {
+            if ($this->isAdsense() || ! $this->hasCreative()) {
+                return null;
+            }
+
+            return route('adment.impression', [
                 'randomHash' => $this->randomHash(),
                 'adsKey' => $this->key,
             ]);
