@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 use Usamamuneerchaudhary\Adment\Models\Ad;
 
 return [
@@ -17,6 +18,13 @@ return [
     |--------------------------------------------------------------------------
     */
     'settings_table' => 'ads_settings',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Daily stats table name
+    |--------------------------------------------------------------------------
+    */
+    'daily_stats_table' => 'ad_daily_stats',
 
     /*
     |--------------------------------------------------------------------------
@@ -52,6 +60,7 @@ return [
     'routes' => [
         'enabled' => true,
         'click_prefix' => 'ac',
+        'impression_prefix' => 'ai',
         'middleware' => ['web'],
 
         // Where to send visitors when an ad or its URL cannot be resolved.
@@ -98,5 +107,28 @@ return [
     'validation' => [
         'order_min' => 0,
         'order_max' => 127,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Targeting
+    |--------------------------------------------------------------------------
+    | Country is resolved from CDN headers (CF-IPCountry, CloudFront-Viewer-
+    | Country, X-Country-Code) or a custom country_resolver callable.
+    | When the country is unknown and an ad has geo targeting, that ad is
+    | excluded (exclude_restricted).
+    */
+    'targeting' => [
+        'country_resolver' => null,
+        'unknown_country_behavior' => 'exclude_restricted',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Analytics
+    |--------------------------------------------------------------------------
+    */
+    'analytics' => [
+        'min_impressions_for_ctr_ranking' => 100,
     ],
 ];
