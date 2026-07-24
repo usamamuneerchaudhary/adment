@@ -9,13 +9,14 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -23,6 +24,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use UnitEnum;
 use Usamamuneerchaudhary\Adment\Contracts\ManagesAds;
+use Usamamuneerchaudhary\Adment\Enums\AdDevice;
+use Usamamuneerchaudhary\Adment\Enums\AdMediaType;
 use Usamamuneerchaudhary\Adment\Enums\AdStatus;
 use Usamamuneerchaudhary\Adment\Enums\AdType;
 use Usamamuneerchaudhary\Adment\Filament\Resources\AdResource\Pages;
@@ -107,22 +110,46 @@ class AdResource extends Resource
                         ->visible(count($locations) > 1)
                         ->native(false),
 
-                    Grid::make(2)->schema([
-                        TextInput::make('order')
-                            ->label(__('Order'))
-                            ->numeric()
-                            ->default(0)
-                            ->minValue(config('adment.validation.order_min', 0))
-                            ->maxValue(config('adment.validation.order_max', 127))
-                            ->required(),
+                    TextInput::make('order')
+                        ->label(__('Weight'))
+                        ->helperText(__('Higher weight means the ad is more likely to be shown in A/B rotation.'))
+                        ->numeric()
+                        ->default(1)
+                        ->minValue(config('adment.validation.order_min', 0))
+                        ->maxValue(config('adment.validation.order_max', 127))
+                        ->required(),
+                ]),
 
-                        DateTimePicker::make('expired_at')
-                            ->label(__('Expires at'))
-                            ->default(now()->addMonth())
-                            ->required(fn (Get $get): bool => ! self::isAdType($get('ads_type'), AdType::GoogleAdsense))
-                            ->visible(fn (Get $get): bool => ! self::isAdType($get('ads_type'), AdType::GoogleAdsense))
-                            ->native(false),
-                    ]),
+            Section::make(__('Schedule'))
+                ->visible(fn (Get $get): bool => ! self::isAdType($get('ads_type'), AdType::GoogleAdsense))
+                ->columns(2)
+                ->schema([
+                    DateTimePicker::make('starts_at')
+                        ->label(__('Starts at'))
+                        ->helperText(__('Leave empty to start immediately.'))
+                        ->native(false),
+
+                    DateTimePicker::make('expired_at')
+                        ->label(__('Ends at'))
+                        ->default(now()->addMonth())
+                        ->required(fn (Get $get): bool => ! self::isAdType($get('ads_type'), AdType::GoogleAdsense))
+                        ->native(false),
+                ]),
+
+            Section::make(__('Targeting'))
+                ->visible(fn (Get $get): bool => ! self::isAdType($get('ads_type'), AdType::GoogleAdsense))
+                ->columns(2)
+                ->schema([
+                    TagsInput::make('target_countries')
+                        ->label(__('Countries'))
+                        ->helperText(__('ISO-3166 alpha-2 codes (e.g. US, GB). Empty = all countries. Resolved from CDN headers such as CF-IPCountry.'))
+                        ->placeholder(__('US'))
+                        ->nestedRecursiveRules(['string', 'size:2']),
+
+                    CheckboxList::make('target_devices')
+                        ->label(__('Devices'))
+                        ->options(AdDevice::class)
+                        ->helperText(__('Leave empty to target all devices.')),
                 ]),
 
             Section::make(__('Google AdSense'))
@@ -150,24 +177,45 @@ class AdResource extends Resource
                         ->default(true)
                         ->inline(false),
 
+                    Select::make('media_type')
+                        ->label(__('Media type'))
+                        ->options(AdMediaType::class)
+                        ->default(AdMediaType::Image)
+                        ->required()
+                        ->live()
+                        ->native(false)
+                        ->columnSpanFull(),
+
                     FileUpload::make('image')
-                        ->label(__('Image (desktop / default)'))
-                        ->image()
+                        ->label(fn (Get $get): string => match (true) {
+                            self::isMediaType($get('media_type'), AdMediaType::Video) => __('Video (desktop / default)'),
+                            self::isMediaType($get('media_type'), AdMediaType::Gif) => __('GIF (desktop / default)'),
+                            default => __('Image (desktop / default)'),
+                        })
+                        ->acceptedFileTypes(fn (Get $get): array => self::acceptedFileTypes($get('media_type')))
                         ->disk(config('adment.media.disk', 'public'))
                         ->directory(config('adment.media.directory', 'ads'))
-                        ->imageEditor(),
+                        ->imageEditor(fn (Get $get): bool => self::isMediaType($get('media_type'), AdMediaType::Image)),
 
                     FileUpload::make('tablet_image')
-                        ->label(__('Tablet image'))
-                        ->helperText(__('Falls back to the default image when empty.'))
-                        ->image()
+                        ->label(fn (Get $get): string => match (true) {
+                            self::isMediaType($get('media_type'), AdMediaType::Video) => __('Tablet video'),
+                            self::isMediaType($get('media_type'), AdMediaType::Gif) => __('Tablet GIF'),
+                            default => __('Tablet image'),
+                        })
+                        ->helperText(__('Falls back to the default creative when empty.'))
+                        ->acceptedFileTypes(fn (Get $get): array => self::acceptedFileTypes($get('media_type')))
                         ->disk(config('adment.media.disk', 'public'))
                         ->directory(config('adment.media.directory', 'ads')),
 
                     FileUpload::make('mobile_image')
-                        ->label(__('Mobile image'))
-                        ->helperText(__('Falls back to tablet, then default image.'))
-                        ->image()
+                        ->label(fn (Get $get): string => match (true) {
+                            self::isMediaType($get('media_type'), AdMediaType::Video) => __('Mobile video'),
+                            self::isMediaType($get('media_type'), AdMediaType::Gif) => __('Mobile GIF'),
+                            default => __('Mobile image'),
+                        })
+                        ->helperText(__('Falls back to tablet, then default creative.'))
+                        ->acceptedFileTypes(fn (Get $get): array => self::acceptedFileTypes($get('media_type')))
                         ->disk(config('adment.media.disk', 'public'))
                         ->directory(config('adment.media.directory', 'ads')),
                 ]),
@@ -180,7 +228,7 @@ class AdResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('image')
-                    ->label(__('Image'))
+                    ->label(__('Creative'))
                     ->disk(config('adment.media.disk', 'public'))
                     ->square(),
 
@@ -203,13 +251,39 @@ class AdResource extends Resource
                     )
                     ->toggleable(),
 
+                Tables\Columns\TextColumn::make('media_type')
+                    ->label(__('Media'))
+                    ->badge()
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('impressions')
+                    ->label(__('Impressions'))
+                    ->numeric()
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('clicked')
                     ->label(__('Clicks'))
                     ->numeric()
                     ->sortable(),
 
+                Tables\Columns\TextColumn::make('ctr')
+                    ->label(__('CTR'))
+                    ->state(fn (Ad $record): string => $record->ctr().'%')
+                    ->sortable(query: function ($query, string $direction): void {
+                        $query->orderByRaw(
+                            'CASE WHEN impressions = 0 THEN 0 ELSE (clicked * 100.0 / impressions) END '.$direction
+                        );
+                    }),
+
+                Tables\Columns\TextColumn::make('starts_at')
+                    ->label(__('Starts'))
+                    ->dateTime()
+                    ->sortable()
+                    ->placeholder(__('Immediately'))
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('expired_at')
-                    ->label(__('Expires'))
+                    ->label(__('Ends'))
                     ->dateTime()
                     ->sortable()
                     ->placeholder(__('Never'))
@@ -227,6 +301,9 @@ class AdResource extends Resource
                 Tables\Filters\SelectFilter::make('ads_type')
                     ->label(__('Type'))
                     ->options(AdType::class),
+                Tables\Filters\SelectFilter::make('media_type')
+                    ->label(__('Media'))
+                    ->options(AdMediaType::class),
                 Tables\Filters\Filter::make('expired')
                     ->label(__('Expired'))
                     ->query(fn ($query) => $query
@@ -258,5 +335,25 @@ class AdResource extends Resource
     protected static function isAdType(mixed $value, AdType $type): bool
     {
         return $value === $type || $value === $type->value;
+    }
+
+    /** Determine whether a form media_type value matches the given media type. */
+    protected static function isMediaType(mixed $value, AdMediaType $type): bool
+    {
+        return $value === $type || $value === $type->value;
+    }
+
+    /**
+     * Resolve accepted upload MIME types for the selected media type.
+     *
+     * @return list<string>
+     */
+    protected static function acceptedFileTypes(mixed $value): array
+    {
+        $type = $value instanceof AdMediaType
+            ? $value
+            : AdMediaType::tryFrom((string) $value) ?? AdMediaType::Image;
+
+        return $type->acceptedFileTypes();
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Usamamuneerchaudhary\Adment\Filament\Pages;
 
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -12,6 +13,10 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\EmbeddedSchema;
+use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -29,8 +34,6 @@ class ManageAdsSettings extends Page implements HasForms
     use InteractsWithForms;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-adjustments-horizontal';
-
-    protected string $view = 'adment::filament.pages.manage-ads-settings';
 
     /** @var array<string, mixed>|null */
     public ?array $data = [];
@@ -106,6 +109,35 @@ class ManageAdsSettings extends Page implements HasForms
                     ]),
             ])
             ->statePath('data');
+    }
+
+    public function content(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                $this->getFormContentComponent(),
+            ]);
+    }
+
+    public function getFormContentComponent(): Component
+    {
+        return Form::make([EmbeddedSchema::make('form')])
+            ->id('form')
+            ->livewireSubmitHandler('save')
+            ->footer([
+                Actions::make($this->getFormActions())
+                    ->key('form-actions'),
+            ]);
+    }
+
+    /** @return array<Action> */
+    protected function getFormActions(): array
+    {
+        return [
+            Action::make('save')
+                ->label(__('Save changes'))
+                ->submit('save'),
+        ];
     }
 
     /** Persist AdSense settings and write the public ads.txt file. */
