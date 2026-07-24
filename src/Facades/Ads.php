@@ -6,6 +6,7 @@ namespace Usamamuneerchaudhary\Adment\Facades;
 
 use Illuminate\Support\Facades\Facade;
 use Usamamuneerchaudhary\Adment\Contracts\ManagesAds;
+use Usamamuneerchaudhary\Adment\Support\AdsManager;
 
 /**
  * @method static \Usamamuneerchaudhary\Adment\Contracts\ManagesAds registerLocation(string $key, string $name)
@@ -17,7 +18,7 @@ use Usamamuneerchaudhary\Adment\Contracts\ManagesAds;
  * @method static \Usamamuneerchaudhary\Adment\Models\Ad|null getAd(string $key)
  * @method static \Illuminate\Support\Collection getData(bool $load = false, bool $displayableOnly = false)
  *
- * @see \Usamamuneerchaudhary\Adment\Support\AdsManager
+ * @see AdsManager
  */
 class Ads extends Facade
 {

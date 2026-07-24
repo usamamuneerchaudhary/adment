@@ -22,7 +22,7 @@ use Usamamuneerchaudhary\Adment\Rules\ValidAdsenseAutoSnippet;
 use Usamamuneerchaudhary\Adment\Settings\AdsSettings;
 
 /**
- * @property-read \Filament\Schemas\Schema $form
+ * @property-read Schema $form
  */
 class ManageAdsSettings extends Page implements HasForms
 {

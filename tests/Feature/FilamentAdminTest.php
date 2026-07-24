@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 use Filament\Facades\Filament;
+
+use function Pest\Livewire\livewire;
+
 use Usamamuneerchaudhary\Adment\Enums\AdsenseMode;
 use Usamamuneerchaudhary\Adment\Enums\AdStatus;
 use Usamamuneerchaudhary\Adment\Enums\AdType;
@@ -13,8 +16,6 @@ use Usamamuneerchaudhary\Adment\Filament\Resources\AdResource\Pages\ListAds;
 use Usamamuneerchaudhary\Adment\Models\Ad;
 use Usamamuneerchaudhary\Adment\Settings\AdsSettings;
 use Usamamuneerchaudhary\Adment\Tests\Fixtures\User;
-
-use function Pest\Livewire\livewire;
 
 beforeEach(function (): void {
     Filament::setCurrentPanel(Filament::getPanel('admin'));

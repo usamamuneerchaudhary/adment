@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use Usamamuneerchaudhary\Adment\Models\Ad;
 
 return [
     /*
@@ -76,7 +77,7 @@ return [
     | relations, or multi-tenancy scopes.
     */
     'models' => [
-        'ad' => \Usamamuneerchaudhary\Adment\Models\Ad::class,
+        'ad' => Ad::class,
     ],
 
     /*

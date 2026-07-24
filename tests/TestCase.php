@@ -32,7 +32,7 @@ abstract class TestCase extends Orchestra
         Factory::guessFactoryNamesUsing(
             fn (string $modelName) => 'Usamamuneerchaudhary\\Adment\\Database\\Factories\\'.class_basename($modelName).'Factory',
         );
-        
+
         $this->app->instance(DataStore::class, $this->app->make(DataStore::class));
     }
 

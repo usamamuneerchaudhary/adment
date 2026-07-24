@@ -6,7 +6,6 @@ namespace Usamamuneerchaudhary\Adment\Events;
 
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Support\Collection;
-use Usamamuneerchaudhary\Adment\Models\Ad;
 
 class AdsLoading
 {
