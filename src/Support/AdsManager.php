@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Usamamuneerchaudhary\Adment\Support;
 
 use Illuminate\Contracts\View\Factory as ViewFactory;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Usamamuneerchaudhary\Adment\Contracts\ManagesAds;
 use Usamamuneerchaudhary\Adment\Events\AdsLoading;
@@ -25,6 +26,8 @@ class AdsManager implements ManagesAds
     public function __construct(
         protected ViewFactory $view,
         protected AdsSettings $settings,
+        protected AdTargeting $targeting = new AdTargeting,
+        protected WeightedAdSelector $weightedSelector = new WeightedAdSelector,
     ) {
         $this->data = new Collection;
         /** @var array<string, string> $locations */
@@ -80,7 +83,20 @@ class AdsManager implements ManagesAds
     }
 
     /**
-     * Render displayable ads for a location (one random ad when $single is true).
+     * Keep only ads that match the current request's targeting rules.
+     *
+     * @param  Collection<int, Ad>  $ads
+     * @return Collection<int, Ad>
+     */
+    public function filterTargeted(Collection $ads, ?Request $request = null): Collection
+    {
+        $request ??= request();
+
+        return $ads->filter(fn (Ad $ad): bool => $this->targeting->matches($ad, $request));
+    }
+
+    /**
+     * Render displayable ads for a location (one weighted-random ad when $single is true).
      *
      * @param  array<string, mixed>  $attributes
      */
@@ -88,17 +104,25 @@ class AdsManager implements ManagesAds
     {
         $this->load();
 
-        $ads = $this->filterDisplayable($this->data)
-            ->where('location', $location)
-            ->sortBy('order')
-            ->values();
+        $ads = $this->filterTargeted(
+            $this->filterDisplayable($this->data)
+                ->where('location', $location)
+                ->sortBy('order')
+                ->values(),
+        )->values();
 
         if ($ads->isEmpty()) {
             return '';
         }
 
         if ($single) {
-            $ads = new Collection([$ads->random()]);
+            $selected = $this->weightedSelector->select($ads);
+
+            if (! $selected instanceof Ad) {
+                return '';
+            }
+
+            $ads = new Collection([$selected]);
         }
 
         return $this->render($ads, $attributes);
@@ -117,7 +141,8 @@ class AdsManager implements ManagesAds
 
         $this->load();
 
-        $ad = $this->filterDisplayable($this->data)->firstWhere('key', $key);
+        $ad = $this->filterTargeted($this->filterDisplayable($this->data))
+            ->firstWhere('key', $key);
 
         if (! $ad instanceof Ad) {
             return null;
@@ -133,19 +158,19 @@ class AdsManager implements ManagesAds
     {
         $this->load();
 
-        return $this->filterDisplayable($this->data)
-            ->where('location', $location)
-            ->isNotEmpty();
+        return $this->filterTargeted(
+            $this->filterDisplayable($this->data)->where('location', $location),
+        )->isNotEmpty();
     }
 
-    /** Find an ad by public key when it has an image creative. */
+    /** Find an ad by public key when it has a creative. */
     public function getAd(string $key): ?Ad
     {
         $this->load();
 
         $ad = $this->data->firstWhere('key', $key);
 
-        return $ad instanceof Ad && $ad->image ? $ad : null;
+        return $ad instanceof Ad && $ad->hasCreative() && ! $ad->isAdsense() ? $ad : null;
     }
 
     /**
