@@ -1,5 +1,5 @@
 # Adment - Filament Ad Manager
-
+![adment-1280 (4).png](public/images/screenshots/adment-1280%20%284%29.png)
 A simple custom ad & Google AdSense manager for **Filament v5** on **Laravel 12/13**, ad placements ("locations"), responsive creatives, obfuscated click tracking, AdSense Auto Ads & ad units, `ads.txt` management, and an optional public JSON API.
 
 > **Requires:** PHP 8.3+, Laravel 12 or 13, Filament 5 (Livewire 4).
