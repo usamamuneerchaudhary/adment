@@ -1,4 +1,11 @@
 # Adment - Filament Ad Manager
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/usamamuneerchaudhary/adment?style=flat-square&g)](https://packagist.org/packages/usamamuneerchaudhary/adment)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/usamamuneerchaudhary/adment/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/usamamuneerchaudhary/adment/?branch=main)
+[![CodeFactor](https://www.codefactor.io/repository/github/usamamuneerchaudhary/adment/badge)](https://www.codefactor.io/repository/github/usamamuneerchaudhary/adment)
+[![Build Status](https://scrutinizer-ci.com/g/usamamuneerchaudhary/adment/badges/build.png?b=main)](https://scrutinizer-ci.com/g/usamamuneerchaudhary/adment/build-status/main)
+[![Code Intelligence Status](https://scrutinizer-ci.com/g/usamamuneerchaudhary/adment/badges/code-intelligence.svg?b=main)](https://scrutinizer-ci.com/code-intelligence)
+[![Total Downloads](https://img.shields.io/packagist/dt/usamamuneerchaudhary/adment?style=flat-square)](https://packagist.org/packages/usamamuneerchaudhary/adment)
+[![Licence](https://img.shields.io/packagist/l/usamamuneerchaudhary/adment?style=flat-square)](https://github.com/usamamuneerchaudhary/adment/blob/HEAD/LICENSE.md)
 ![adment-1280 (4).png](public/images/screenshots/adment-1280%20%284%29.png)
 A simple custom ad & Google AdSense manager for **Filament v5** on **Laravel 12/13** — placements, responsive (and GIF/video) creatives, weighted A/B rotation, scheduling windows, geo/device targeting, impression & CTR analytics, obfuscated click tracking, AdSense Auto Ads & ad units, `ads.txt` management, and an optional public JSON API.
 
